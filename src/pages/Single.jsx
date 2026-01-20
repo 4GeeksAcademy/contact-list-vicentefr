@@ -1,36 +1,101 @@
-// Import necessary hooks and components from react-router-dom and other libraries.
-import { Link, useParams } from "react-router-dom";  // To use link for navigation and useParams to get URL parameters
-import PropTypes from "prop-types";  // To define prop types for this component
-import useGlobalReducer from "../hooks/useGlobalReducer";  // Import a custom hook for accessing the global state
+import { Link, useParams, useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
+import { useState, useEffect } from "react";
+import React from "react";
 
-// Define and export the Single component which displays individual item details.
-export const Single = props => {
-  // Access the global state using the custom hook.
-  const { store } = useGlobalReducer()
+export const Single = () => {
+  const { theId } = useParams(); 
+  const { store, dispatch } = useGlobalReducer();
+  const navigate = useNavigate();
 
-  // Retrieve the 'theId' URL parameter using useParams hook.
-  const { theId } = useParams()
-  const singleTodo = store.todos.find(todo => todo.id === parseInt(theId));
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+
+  useEffect(() => {
+    if (store.contacts.length > 0) {
+      const contactToEdit = store.contacts.find(c => c.id === parseInt(theId));
+      if (contactToEdit) {
+        setName(contactToEdit.name);
+        setEmail(contactToEdit.email);
+        setPhone(contactToEdit.phone);
+        setAddress(contactToEdit.address);
+      }
+    }
+  }, [theId, store.contacts]);
+
+  const editContact = () => {
+    const editContact = {
+      name,
+      email,
+      phone,
+      address
+    };
+
+    fetch(`https://playground.4geeks.com/contact/agendas/vicente/contacts/${theId}`, {
+      method: "PUT", 
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(editContact)
+    })
+      .then(response => {
+        if (!response.ok) throw new Error("Error al actualizar");
+        return response.json();
+      })
+      .then(data => {
+        dispatch({
+          type: "edit_contact",
+          payload: { id: parseInt(theId), updates: editContact }
+        });
+        navigate("/");
+      })
+      .catch(error => console.error(error));
+  };
 
   return (
-    <div className="container text-center">
-      {/* Display the title of the todo element dynamically retrieved from the store using theId. */}
-      <h1 className="display-4">Todo: {singleTodo?.title}</h1>
-      <hr className="my-4" />  {/* A horizontal rule for visual separation. */}
+    <div className="container px-5">
+      <h1 className="text-center mt-5 mb-4">Edit Contact</h1>
+      <div className="d-flex flex-column">
+        <p className="mb-1">Full Name</p>
+        <input 
+            type="text" 
+            value={name}
+            placeholder="Enter Name" 
+            onChange={(e) => setName(e.target.value)} 
+        />
 
-      {/* A Link component acts as an anchor tag but is used for client-side routing to prevent page reloads. */}
-      <Link to="/">
-        <span className="btn btn-primary btn-lg" href="#" role="button">
-          Back home
-        </span>
-      </Link>
+        <p className="mb-1 mt-3">Email</p>
+        <input 
+            type="email" 
+            value={email} 
+            placeholder="Enter email" 
+            onChange={(e) => setEmail(e.target.value)} 
+        />
+
+        <p className="mb-1 mt-3">Phone</p>
+        <input 
+            type="text" 
+            value={phone} 
+            placeholder="Enter phone" 
+            onChange={(e) => setPhone(e.target.value)} 
+        />
+
+        <p className="mb-1 mt-3">Address</p>
+        <input 
+            type="text" 
+            value={address} 
+            placeholder="Enter address" 
+            onChange={(e) => setAddress(e.target.value)} 
+        />
+
+        <button className="btn btn-primary mt-4" onClick={editContact}>
+          Save Changes
+        </button>
+        
+        <Link to="/" className="mt-2"><p>Or get back to contacts</p></Link>
+      </div>
     </div>
   );
-};
-
-// Use PropTypes to validate the props passed to this component, ensuring reliable behavior.
-Single.propTypes = {
-  // Although 'match' prop is defined here, it is not used in the component.
-  // Consider removing or using it as needed.
-  match: PropTypes.object
 };

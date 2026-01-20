@@ -14,21 +14,30 @@ export const CreateContact = () => {
     const [address, setAddress] = useState("");
     const navigate = useNavigate();
 
-const saveContact = () => {
-    const newContact = {
-        id: Date.now(),
-        name,
-        email,
-        phone,
-        address
-    };
+    const saveContact = () => {
+        const newContact = {
+            name,
+            email,
+            phone,
+            address
+        };
 
-    dispatch({
-        type: "add_contact",
-        payload: newContact
-    });
-};
-
+        fetch(`https://playground.4geeks.com/contact/agendas/vicente/contacts`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newContact)
+        })
+            .then(response => response.json())
+            .then(data => {
+                dispatch({
+                    type: "add_contact",
+                    payload: newContact
+                });
+                navigate("/");
+            });
+    }
     console.log(store);
     return (
         <div className="container px-5">
@@ -44,7 +53,6 @@ const saveContact = () => {
                 <input type="text" name="" id="address" placeholder="  Enter address" onChange={(e) => setAddress(e.target.value)} />
                 <input className="btn btn-primary mt-4" type="submit" value="Save" onClick={() => {
                     saveContact();
-                    navigate("/");
                 }} />
                 <Link to="/" className="mt-2"><p>Or get back to contacts</p></Link>
             </div>
