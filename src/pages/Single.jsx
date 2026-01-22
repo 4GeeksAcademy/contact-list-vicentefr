@@ -14,7 +14,7 @@ export const Single = () => {
   const [address, setAddress] = useState("");
 
   useEffect(() => {
-    if (store.contacts.length > 0) {
+    if (store.contacts?.length > 0) {
       const contactToEdit = store.contacts.find(c => c.id === parseInt(theId));
       if (contactToEdit) {
         setName(contactToEdit.name);

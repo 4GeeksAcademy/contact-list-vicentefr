@@ -13,22 +13,24 @@ export const Home = () => {
 		getContacts()
 	}, []);
 
-	const getContacts = () => {
-		fetch(`https://playground.4geeks.com/contact/agendas/${slug}`)
-			.then((resp) => {
-				if (!resp.ok) createAgenda()
-				else console.log(`Contactos extraidos de store correctamente`, resp.status)
-				return resp.json()
-
-			})
-			.then((data) => {
-				dispatch({
-					type: `load_contacts`,
-					payload: data.contacts
-				})
-			})
-			.catch((error) => console.error(`Error al taer contactss`, error))
-	}
+const getContacts = () => {
+    fetch(`https://playground.4geeks.com/contact/agendas/${slug}`)
+        .then((resp) => {
+            if (resp.status === 404) {
+                createAgenda();
+                return { contacts: [] }; 
+            }
+            if (!resp.ok) throw new Error("Error cargando contactos");
+            return resp.json();
+        })
+        .then((data) => {
+            dispatch({
+                type: `load_contacts`,
+                payload: data.contacts || [] 
+            });
+        })
+        .catch((error) => console.error(`Error al traer contactos`, error));
+}
 
 
 	const createAgenda = () => {
@@ -64,7 +66,7 @@ export const Home = () => {
 	console.log(store)
 	return (
 		<div className="mt-2 container">
-			{store.contacts.length > 0 ? (
+			{store.contacts?.length > 0 ? (
 				store.contacts.map((contact) => (
 					<div key={contact.id} className="border d-flex">
 						<img src="https://placehold.co/200x200" alt="imagen" className="rounded-circle m-2" />

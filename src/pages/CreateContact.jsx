@@ -33,7 +33,7 @@ export const CreateContact = () => {
             .then(data => {
                 dispatch({
                     type: "add_contact",
-                    payload: newContact
+                    payload: data
                 });
                 navigate("/");
             });
